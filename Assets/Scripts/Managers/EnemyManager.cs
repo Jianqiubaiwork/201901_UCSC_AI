@@ -3,18 +3,25 @@
 public class EnemyManager : MonoBehaviour
 {
     public PlayerHealth playerHealth;
+	public PlayerMovement playerMovement;
     public GameObject enemy;
-    public float spawnTime = 3f;
-    public Transform[] spawnPoints;
+	public Rigidbody enemyRigidbody;
+    //public float spawnTime = 3f;
+    //public Transform[] spawnPoints;
 
 
-    void Start ()
+    void Awake ()
     {
-        InvokeRepeating ("Spawn", spawnTime, spawnTime);
+		enemyRigidbody = GetComponent<Rigidbody> ();
+        //InvokeRepeating ("Spawn", spawnTime, spawnTime);
     }
 
+	/*void FixedUpdate()
+	{
+		enemyRigidbody.MoveRotation (Quaternion.LookRotation(playerMovement.playerRigidbody.transform.position - transform.position));
+	}*/
 
-    void Spawn ()
+    /*void Spawn ()
     {
         if(playerHealth.currentHealth <= 0f)
         {
@@ -24,5 +31,5 @@ public class EnemyManager : MonoBehaviour
         int spawnPointIndex = Random.Range (0, spawnPoints.Length);
 
         Instantiate (enemy, spawnPoints[spawnPointIndex].position, spawnPoints[spawnPointIndex].rotation);
-    }
+    }*/
 }

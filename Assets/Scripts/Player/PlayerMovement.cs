@@ -25,6 +25,11 @@ public class PlayerMovement : MonoBehaviour
 		playerRigidbody.MovePosition (transform.position + offset);
 	}
 
+	void OnCollisonEnter(Collision col)
+	{
+		Debug.Log(col.gameObject.tag);
+	}
+
 	void FixedUpdate()
 	{
 		if (MenuManager.Instance.GAME_MODE == 1)
@@ -47,28 +52,31 @@ public class PlayerMovement : MonoBehaviour
 		direction = direction.normalized*stepSize;
 		Ray ray = new Ray(transform.position, direction);
 		RaycastHit hit;
-		if (!Physics.Raycast(ray, out hit, direction.magnitude - phase.magnitude))
+		if (phase.magnitude != 0f || !Physics.Raycast(ray, out hit, direction.magnitude))
 		{
 			isChangingAction = false;
 			playerRigidbody.MovePosition (transform.position + direction*0.1f);
 			phase += direction*0.1f;
-
-			if (phase.magnitude == direction.magnitude)
+			if (phase.magnitude == stepSize)
 			{
 				isChangingAction = true;
-				Debug.Log("Unit movement made! Action changing!");
+				//Debug.Log("Unit movement made! Action changing!");
 				phase.Set (0f, 0f, 0f);
 			}
 		}
 		else
 		{
-			Debug.Log("Will hit in " + (direction.magnitude - phase.magnitude) + " ! Action changing!");
+			//Debug.Log("Will hit in " + (direction.magnitude - phase.magnitude) + " ! Action changing!");
 			isCollison = true;
 			isChangingAction = true;
 			playerRigidbody.MovePosition(transform.position);
 
 		}
-		playerRigidbody.MoveRotation (Quaternion.LookRotation(direction));
+		if (direction != Vector3.zero) 
+		{
+			playerRigidbody.MoveRotation (Quaternion.LookRotation(direction));
+		}
+
 	}
 
 	void Turning ()

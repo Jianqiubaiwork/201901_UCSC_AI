@@ -4,10 +4,10 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Coin
   - Floor
   - Wall
   - Pillar
+  - Info
   layers:
   - Default
   - TransparentFX

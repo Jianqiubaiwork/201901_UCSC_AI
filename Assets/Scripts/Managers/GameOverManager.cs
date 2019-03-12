@@ -17,12 +17,12 @@ public class GameOverManager : MonoBehaviour
     {
         if (playerHealth.currentHealth <= 0)
         {
-			anim.SetTrigger ("GameOver");
+			SceneManager.LoadScene("Game");
         }
     }
 
-	public void Reset()
+	/*public void Reset()
 	{
 		anim.SetTrigger ("GameOver");
-	}
+	}*/
 }

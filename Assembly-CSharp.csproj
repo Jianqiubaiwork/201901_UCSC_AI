@@ -53,27 +53,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\_Complete-Game\MobileInput\Scripts\CrossPlatformInputManager.cs" />
-     <Compile Include="Assets\_Complete-Game\MobileInput\Scripts\Joystick.cs" />
-     <Compile Include="Assets\_Complete-Game\MobileInput\Scripts\MobileControlRig.cs" />
-     <Compile Include="Assets\_Complete-Game\MobileInput\Scripts\PlatformSpecific\MobileInput.cs" />
-     <Compile Include="Assets\_Complete-Game\MobileInput\Scripts\PlatformSpecific\StandaloneInput.cs" />
-     <Compile Include="Assets\_Complete-Game\MobileInput\Scripts\VirtualInput.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Audio\MixLevels.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Camera\CameraFollow.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Enemy\EnemyAttack.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Enemy\EnemyHealth.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Enemy\EnemyMovement.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Helpers\RandomAnimationPoint.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Helpers\RandomParticlePoint.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Helpers\VolumeHandler.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Managers\EnemyManager.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Managers\GameOverManager.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Managers\PauseManager.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Managers\ScoreManager.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Player\PlayerHealth.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Player\PlayerMovement.cs" />
-     <Compile Include="Assets\_Complete-Game\Scripts\Player\PlayerShooting.cs" />
      <Compile Include="Assets\Scripts\Camera\CameraFollow.cs" />
      <Compile Include="Assets\Scripts\Enemy\EnemyAttack.cs" />
      <Compile Include="Assets\Scripts\Enemy\EnemyHealth.cs" />
@@ -81,8 +60,9 @@
      <Compile Include="Assets\Scripts\Managers\EnemyManager.cs" />
      <Compile Include="Assets\Scripts\Managers\Environment.cs" />
      <Compile Include="Assets\Scripts\Managers\GameOverManager.cs" />
+     <Compile Include="Assets\Scripts\Managers\InfoManager.cs" />
      <Compile Include="Assets\Scripts\Managers\MenuManager.cs" />
-     <Compile Include="Assets\Scripts\Managers\ScoreManager.cs" />
+     <Compile Include="Assets\Scripts\Managers\TimeManager.cs" />
      <Compile Include="Assets\Scripts\MazeGenerator\BasicMazeGenerator.cs" />
      <Compile Include="Assets\Scripts\MazeGenerator\DivisionMazeGenerator.cs" />
      <Compile Include="Assets\Scripts\MazeGenerator\MazeCell.cs" />
@@ -96,7 +76,6 @@
      <Compile Include="Assets\Scripts\Player\PlayerHealth.cs" />
      <Compile Include="Assets\Scripts\Player\PlayerMovement.cs" />
      <Compile Include="Assets\Scripts\Player\PlayerShooting.cs" />
-     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
      <None Include="Assets\SurvivalShooter_Third-PartyNotice.txt" />
      <None Include="Assets\Fonts\LuckiestGuy\FontLicense.txt" />
  <Reference Include="Unity.TextMeshPro.Editor">

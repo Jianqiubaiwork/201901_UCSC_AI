@@ -10,13 +10,13 @@ public class Environment : MonoBehaviour
 	// System Variables
 	public static Environment Instance { get; set; }
 	public MazeSpawner mazeSpawner;
+	public float timer = 0.0f;
 	static int episode = 0;
 	const int MAX_EPISODE = 1000;
 	const int TIME_CAP = 5000;
 	int FRAME_GAP = 0;
 	int frameNumber = 0;
 	int frameGap = 0;
-	float timer = 0.0f;
 
 	// Agent Variables
 	public PlayerHealth playerHealth;
@@ -51,8 +51,8 @@ public class Environment : MonoBehaviour
 	const float epsilon = 1f; //e-greedy
 
 	// IO Variables
+	public string information = "";
 	string filename = "./qtable.txt";
-	string test = "";
 
 	void Awake()
 	{
@@ -62,7 +62,7 @@ public class Environment : MonoBehaviour
 		exploredStates = new List<int>();
 		IdentifyNextState();
 		MOVEMENT_STEP_SIZE = (int)mazeSpawner.CellWidth;
-		//FRAME_GAP = (int)(1/0.2);
+		Instance = this;
 	}
 
 	// Update is called once per frame
@@ -87,10 +87,10 @@ public class Environment : MonoBehaviour
 				//moveCost+=1;
 				Learning();
 			}
-			else
-			{
-				UnityEditor.EditorApplication.isPlaying = false;
-			}
+			//else
+			//{
+			//	UnityEditor.EditorApplication.isPlaying = false;
+			//}
 
 			timer += Time.deltaTime;
 			frameNumber +=1;
@@ -198,7 +198,7 @@ public class Environment : MonoBehaviour
 	{
 		IdentifyNextState();
 		Q_Learning(nextStateIndex);
-		//Q_Learning_Console();
+		Q_Learning_Console();
 		stateIndex = nextStateIndex;
 	}
 
@@ -212,7 +212,8 @@ public class Environment : MonoBehaviour
 
 	void Q_Learning_Console()
 	{
-		string information="";
+		information="";
+		information+="At iteration " + frameNumber +"\n";
 		for(int i=1;i<=N_STATES;i++)
 		{
 			information += "At state " + i + " : ";
@@ -222,7 +223,6 @@ public class Environment : MonoBehaviour
 			}
 			information += "\n";
 		}
-		Debug.Log(information);
 	}
 
 	float RewardFunction()

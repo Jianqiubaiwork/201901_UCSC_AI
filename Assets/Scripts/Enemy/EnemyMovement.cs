@@ -3,6 +3,7 @@ using System.Collections;
 
 public class EnemyMovement : MonoBehaviour
 {
+	public Rigidbody enemyRigidbody;
     Transform player;
     PlayerHealth playerHealth;
     EnemyHealth enemyHealth;
@@ -14,7 +15,8 @@ public class EnemyMovement : MonoBehaviour
         player = GameObject.FindGameObjectWithTag ("Player").transform;
         playerHealth = player.GetComponent <PlayerHealth> ();
         enemyHealth = GetComponent <EnemyHealth> ();
-        nav = GetComponent <UnityEngine.AI.NavMeshAgent> ();
+		enemyRigidbody = GetComponent<Rigidbody> ();
+        //nav = GetComponent <UnityEngine.AI.NavMeshAgent> ();
     }
 
 
@@ -22,11 +24,12 @@ public class EnemyMovement : MonoBehaviour
     {
         if(enemyHealth.currentHealth > 0 && playerHealth.currentHealth > 0)
         {
-            nav.SetDestination (player.position);
+			enemyRigidbody.MoveRotation (Quaternion.LookRotation(player.position - transform.position));
+            //nav.SetDestination (player.position);
         }
-        else
-        {
-            nav.enabled = false;
-        }
+        //else
+        //{
+        //   nav.enabled = false;
+        //}
     }
 }
