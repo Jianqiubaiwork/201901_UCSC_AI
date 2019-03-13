@@ -40,11 +40,19 @@ public class PlayerMovement : MonoBehaviour
 		}
 	}
 
-	public void Move (int h, int v, int movementStepSize)
+	public void CheckMovementValidation(int h, int v, int movementStepSize)
 	{
 		direction.Set (h, 0, v);
 		Ray ray = new Ray(transform.position, direction);
 		RaycastHit hit;
+
+		if (Physics.Raycast(ray, out hit, movementStepSize, mazeMask) && phase==0) isHit = true;
+		else isHit = false;
+	}
+
+	public void Move (int h, int v, int movementStepSize)
+	{
+		direction.Set (h, 0, v);
 
 		if (direction != Vector3.zero) 
 		{
@@ -53,19 +61,16 @@ public class PlayerMovement : MonoBehaviour
 			
 		if (h == 0 && v == 0)
 		{
-			isHit = true;
 			isInAction = false;
 			playerRigidbody.MovePosition(transform.position);
 		}
-		else if (Physics.Raycast(ray, out hit, movementStepSize, mazeMask) && phase==0)
+		else if (isHit)
 		{
-			isHit = true;
 			isInAction = false;
 			playerRigidbody.MovePosition(transform.position);
 		}
 		else
 		{
-			isHit = false;
 			isInAction = true;
 			playerRigidbody.MovePosition (transform.position + direction*movementStepSize/PHASE_CAP);
 			phase += 1;

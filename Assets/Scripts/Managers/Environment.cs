@@ -21,9 +21,9 @@ public class Environment : MonoBehaviour
 	public PlayerMovement playerMovement;
 	public PlayerShooting playerShooting;
 	const int moveCost = 1;
-	const int collisionCost = 1;
-	const int explorationReward = 10;
-	const int finalReward = 100;
+	const int noCollisionReward = 10;
+	const int explorationReward = 20;
+	const int finalReward = 10000;
 	int MOVEMENT_STEP_SIZE = 0;
 	int x = 0;
 	int y = 0;
@@ -31,8 +31,8 @@ public class Environment : MonoBehaviour
 
 	// State Variables
 	int N_STATES=0;
-	int stateIndex=0;
-	int nextStateIndex=0;
+	int currentStateIndex=1;
+	int nextStateIndex=1;
 	List<int> exploredStates;
 
 	//Action Variables
@@ -44,7 +44,7 @@ public class Environment : MonoBehaviour
 	static float[,] q_table;
 	const float alpha = 0.8f; //learning rate
 	const float gamma = 0.5f; //delay rate
-	const float epsilon = 0.9f; //e-greedy
+	const float epsilon = 0.5f; //e-greedy
 
 	// IO Variables
 	int h = 0;
@@ -58,7 +58,6 @@ public class Environment : MonoBehaviour
 		frame=0;
 		Initialize();
 		exploredStates = new List<int>();
-		IdentifyNextState();
 		MOVEMENT_STEP_SIZE = (int)mazeSpawner.CellWidth;
 		Instance = this;
 	}
@@ -94,10 +93,14 @@ public class Environment : MonoBehaviour
 			{
 				if (!playerMovement.isInAction)
 				{
-					actionIndex = ChooseAction();
-					Learning();
+					ChooseAction();
+					playerMovement.CheckMovementValidation(h,v,MOVEMENT_STEP_SIZE);
+					CheckStateIndex();
+					Q_Learning();
+					Q_Learning_Console();
 				}
-				MakeMove();
+				playerMovement.Move(h,v,MOVEMENT_STEP_SIZE);
+				playerMovement.Animating (h,v);
 			}
 			else
 			{
@@ -119,74 +122,99 @@ public class Environment : MonoBehaviour
 		y = (int)(pos.z/mazeSpawner.CellWidth) + 1;
 	}
 
-	void IdentifyNextState()
+	void CheckStateIndex()
 	{
 		//input: currentState, action
 		//output: state
 		TrackingPosition();
-		nextStateIndex = (y-1)*mazeSpawner.Columns + x;
-		if (exploredStates.Find(e => e == nextStateIndex) == 0) 
+		currentStateIndex = (y-1)*mazeSpawner.Columns + x;
+			
+		if (actionIndex==0) //left
 		{
-			isNewStateExplored = true;
-			exploredStates.Add(nextStateIndex);
+			nextStateIndex = (y-1)*mazeSpawner.Columns + (x - 1);
 		}
-		else
+		else if (actionIndex==1) //top
+		{
+			nextStateIndex = y*mazeSpawner.Columns + x;
+		}
+		else if (actionIndex==2) //right
+		{
+			nextStateIndex = (y-1)*mazeSpawner.Columns + (x + 1);
+		}
+		else if (actionIndex==3) //down
+		{
+			nextStateIndex = (y-2)*mazeSpawner.Columns + x;
+		}
+
+		if (nextStateIndex < 1 || nextStateIndex > N_STATES)
 		{
 			isNewStateExplored = false;
 		}
+		else
+		{
+			if (exploredStates.Find(e => e == nextStateIndex) == 0) 
+			{
+				isNewStateExplored = true;
+				exploredStates.Add(nextStateIndex);
+			}
+			else
+			{
+				isNewStateExplored = false;
+			}
+		}
 	}
 		
-	int ChooseAction()
+	void ChooseAction()
 	{
 		//input: currentState, q_table
 		//output: action
 		float randomNumber = Random.Range(0.0f, 1.0f);
 		if (randomNumber <= epsilon)
 		{
-			actionIndex = Argmax(stateIndex);
+			actionIndex = Argmax(currentStateIndex);
 		}
 		else
 		{
 			actionIndex = actionList[Random.Range(0, actionList.Count)];
 		}
-		return actionIndex;
-	}
-
-	void MakeMove()
-	{
-		switch (actionIndex)
+		if (actionIndex == 0)
 		{
-		case 0:
-			// move left
-			playerMovement.Move(-1,0,MOVEMENT_STEP_SIZE);
-			playerMovement.Animating (-1, 0);
-			break;
-		case 1:
-			// move top
-			playerMovement.Move(0,1,MOVEMENT_STEP_SIZE);
-			playerMovement.Animating (0, 1);
-			break;
-		case 2:
-			// move right
-			playerMovement.Move(1,0,MOVEMENT_STEP_SIZE);
-			playerMovement.Animating (1, 0);
-			break;
-		case 3:
-			// move bottom
-			playerMovement.Move(0,-1,MOVEMENT_STEP_SIZE);
-			playerMovement.Animating (0, -1);
-			break;
+			h = -1;
+			v = 0;
+		}
+		else if (actionIndex == 1)
+		{
+			h = 0;
+			v = 1;
+		}
+		else if (actionIndex == 2)
+		{
+			h = 1;
+			v = 0;
+		}
+		else if (actionIndex == 3)
+		{
+			h = 0;
+			v = -1;
 		}
 	}
 
-	int Argmax(int currentState)
+	int Argmax(int stateIndex)
 	{
 		List<float> row = new List<float>();
 		List<int> rowIndex = new List<int>();
-		//Debug.Log(currentState);
+
+		/*Debug.Log("here:" + stateIndex);
+		if (stateIndex < 1 || stateIndex > 100)
+		{
+			Debug.Log(x);
+			Debug.Log(y);
+			Time.timeScale = 0;
+		}*/
+
 		for (int i=0; i<ACTION_NUMBERS; i++)
 		{
-			row.Add(q_table[currentState, i]);
+			row.Add(q_table[stateIndex, i]);
 		}
 		float max = row.Max();
 		for (int i=0; i<ACTION_NUMBERS; i++)
@@ -201,21 +229,22 @@ public class Environment : MonoBehaviour
 		return rowIndex[randomIndex];
 	}
 
-	void Learning()
+	/*void Learning()
 	{
-		IdentifyNextState();
+		CheckState();
 		Q_Learning();
 		Q_Learning_Console();
 		stateIndex = nextStateIndex;
-	}
+	}*/
 
 	void Q_Learning()
 	{
 		float r = RewardFunction();
 		float ExactReward = r + gamma*(Argmax(nextStateIndex));
-		float EstimatedReward = q_table[stateIndex, actionIndex];
-		q_table[stateIndex, actionIndex] += alpha*(ExactReward - EstimatedReward);
-		q_table[stateIndex, actionIndex] = Mathf.Round(q_table[stateIndex, actionIndex]);
+		float EstimatedReward = q_table[currentStateIndex, actionIndex];
+		q_table[currentStateIndex, actionIndex] = alpha*ExactReward + alpha*EstimatedReward;
+		q_table[currentStateIndex, actionIndex] = Mathf.Round(q_table[currentStateIndex, actionIndex]);
+		//Debug.Log("Q Table ( " + currentStateIndex + " , " + actionIndex + " , " + nextStateIndex + " )  is updated by " + q_table[currentStateIndex, actionIndex]);
 	}
 
 	void Q_Learning_Console()
@@ -238,16 +267,29 @@ public class Environment : MonoBehaviour
 	{
 		//int damageTaken = (int)(playerHealth.startingHealth - playerHealth.currentHealth)/10;
 		float r = 0;
-		if (isNewStateExplored) r+= explorationReward;
-		else r-= explorationReward;
-		if (playerMovement.isHit) r -= collisionCost + moveCost;
-		else r -= moveCost;
-		if (playerMovement.isTerminating) r += finalReward;
-		r -= timer;
+		//r += -timer/10;
 		if (isNewStateExplored)
 		{
 			r += explorationReward;
 			isNewStateExplored = false;
+		}
+		//else
+		//{
+		//	r -= explorationReward;
+		//}
+		if (!playerMovement.isHit) 
+		{
+			r += noCollisionReward;
+			//Debug.Log("Won't hit! Reward++!");
+		}
+		//else
+		//{
+		//	r -= noCollisionReward*100;
+			//Debug.Log("Will hit! No reward!");
+		//}
+		if (playerMovement.isTerminating) 
+		{
+			r += finalReward;
 		}
 		return r;
 	}
