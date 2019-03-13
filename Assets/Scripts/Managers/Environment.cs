@@ -13,10 +13,8 @@ public class Environment : MonoBehaviour
 	public float timer = 0.0f;
 	static int episode = 0;
 	const int MAX_EPISODE = 1000;
-	const int TIME_CAP = 5000;
-	int FRAME_GAP = 0;
-	int frameNumber = 0;
-	int frameGap = 0;
+	const int TIME_CAP = 100;
+	int frame = 0;
 
 	// Agent Variables
 	public PlayerHealth playerHealth;
@@ -25,13 +23,11 @@ public class Environment : MonoBehaviour
 	const int moveCost = 1;
 	const int collisionCost = 1;
 	const int explorationReward = 10;
-	//Vector3 oldPosition;
-	float MOVEMENT_STEP_SIZE = 5f;
+	const int finalReward = 100;
+	int MOVEMENT_STEP_SIZE = 0;
 	int x = 0;
 	int y = 0;
-	bool isCollision = false;
 	bool isNewStateExplored = false;
-	bool isChangingAction = true;
 
 	// State Variables
 	int N_STATES=0;
@@ -46,88 +42,100 @@ public class Environment : MonoBehaviour
 
 	// Q-Learning Parameters
 	static float[,] q_table;
-	const float alpha = 1f; //learning rate
-	const float gamma = 0f; //delay rate
-	const float epsilon = 1f; //e-greedy
+	const float alpha = 0.8f; //learning rate
+	const float gamma = 0.5f; //delay rate
+	const float epsilon = 0.9f; //e-greedy
 
 	// IO Variables
+	int h = 0;
+	int v = 0;
 	public string information = "";
 	string filename = "./qtable.txt";
 
 	void Awake()
 	{
 		episode += 1;
-		frameNumber=0;
+		frame=0;
 		Initialize();
 		exploredStates = new List<int>();
 		IdentifyNextState();
 		MOVEMENT_STEP_SIZE = (int)mazeSpawner.CellWidth;
 		Instance = this;
 	}
-
-	// Update is called once per frame
+		
 	void FixedUpdate()
 	{
+		timer += Time.deltaTime;
+		frame += 1;
+		TrackingPosition();
+
+		if (MenuManager.Instance.GAME_MODE == 1)
+		{
+			if (!playerMovement.isInAction)
+			{
+				h = (int)Input.GetAxisRaw("Horizontal");
+				v = (int)Input.GetAxisRaw("Vertical");
+			}
+			playerMovement.Move(h,v,MOVEMENT_STEP_SIZE);
+			if (playerMovement.isTerminating)
+			{
+				SceneManager.LoadScene("Game");
+			}
+		}
+
 		if (MenuManager.Instance.GAME_MODE == 2)
 		{
-			if (playerShooting.damageMade > 600 || timer > TIME_CAP)
+			if (timer > TIME_CAP || playerMovement.isTerminating)
 			{
 				SceneManager.LoadScene("Game");
 			}
 
 			if (episode <= MAX_EPISODE)
 			{
-				//CheckIsChangingAction();
-				if (isChangingAction)
+				if (!playerMovement.isInAction)
 				{
 					actionIndex = ChooseAction();
+					Learning();
 				}
-				MakeAction();
-				//Debug.Log("At frame " + frameNumber + " : ( " + actionIndex + " )");
-				//moveCost+=1;
-				Learning();
+				MakeMove();
 			}
-			//else
-			//{
-			//	UnityEditor.EditorApplication.isPlaying = false;
-			//}
-
-			timer += Time.deltaTime;
-			frameNumber +=1;
+			else
+			{
+				SceneManager.LoadScene("GameOver");
+			}
 		}
 	}
-
-
 
 	void Initialize()
 	{
 		N_STATES = mazeSpawner.Rows * mazeSpawner.Columns;
-		q_table = new float[N_STATES+1,ACTION_NUMBERS+1];
+		if (episode == 1) q_table = new float[N_STATES+1,ACTION_NUMBERS+1];
+	}
+
+	void TrackingPosition()
+	{
+		Vector3 pos = playerMovement.playerRigidbody.position;
+		x = (int)(pos.x/mazeSpawner.CellWidth) + 1;
+		y = (int)(pos.z/mazeSpawner.CellWidth) + 1;
 	}
 
 	void IdentifyNextState()
 	{
 		//input: currentState, action
 		//output: state
-
-		Vector3 pos = playerMovement.playerRigidbody.position;
-		x = (int)(pos.x/mazeSpawner.CellWidth) + 1;
-		y = (int)(pos.z/mazeSpawner.CellWidth) + 1;
+		TrackingPosition();
 		nextStateIndex = (y-1)*mazeSpawner.Columns + x;
-		//Debug.Log("next state is " + nextStateIndex);
-		//Debug.Log(exploredStates.Find(e => e == nextStateIndex));
 		if (exploredStates.Find(e => e == nextStateIndex) == 0) 
 		{
 			isNewStateExplored = true;
 			exploredStates.Add(nextStateIndex);
 		}
+		else
+		{
+			isNewStateExplored = false;
+		}
 	}
-
-	/*void CheckIsChangingAction()
-	{
 		
-	}*/
-
 	int ChooseAction()
 	{
 		//input: currentState, q_table
@@ -144,30 +152,29 @@ public class Environment : MonoBehaviour
 		return actionIndex;
 	}
 
-	void MakeAction()
+	void MakeMove()
 	{
-		//actionIndex = 2;
 		switch (actionIndex)
 		{
 		case 0:
 			// move left
-			playerMovement.Move(-1,0,out isCollision,out isChangingAction,MOVEMENT_STEP_SIZE);
-			playerMovement.Animating (-MOVEMENT_STEP_SIZE, 0);
+			playerMovement.Move(-1,0,MOVEMENT_STEP_SIZE);
+			playerMovement.Animating (-1, 0);
 			break;
 		case 1:
 			// move top
-			playerMovement.Move(0,1,out isCollision,out isChangingAction,MOVEMENT_STEP_SIZE);
-			playerMovement.Animating (0, MOVEMENT_STEP_SIZE);
+			playerMovement.Move(0,1,MOVEMENT_STEP_SIZE);
+			playerMovement.Animating (0, 1);
 			break;
 		case 2:
 			// move right
-			playerMovement.Move(1,0,out isCollision,out isChangingAction,MOVEMENT_STEP_SIZE);
-			playerMovement.Animating (MOVEMENT_STEP_SIZE, 0);
+			playerMovement.Move(1,0,MOVEMENT_STEP_SIZE);
+			playerMovement.Animating (1, 0);
 			break;
 		case 3:
 			// move bottom
-			playerMovement.Move(0,-1,out isCollision,out isChangingAction,MOVEMENT_STEP_SIZE);
-			playerMovement.Animating (0, -MOVEMENT_STEP_SIZE);
+			playerMovement.Move(0,-1,MOVEMENT_STEP_SIZE);
+			playerMovement.Animating (0, -1);
 			break;
 		}
 	}
@@ -197,23 +204,25 @@ public class Environment : MonoBehaviour
 	void Learning()
 	{
 		IdentifyNextState();
-		Q_Learning(nextStateIndex);
+		Q_Learning();
 		Q_Learning_Console();
 		stateIndex = nextStateIndex;
 	}
 
-	void Q_Learning(int nextStateIndex)
+	void Q_Learning()
 	{
 		float r = RewardFunction();
 		float ExactReward = r + gamma*(Argmax(nextStateIndex));
 		float EstimatedReward = q_table[stateIndex, actionIndex];
 		q_table[stateIndex, actionIndex] += alpha*(ExactReward - EstimatedReward);
+		q_table[stateIndex, actionIndex] = Mathf.Round(q_table[stateIndex, actionIndex]);
 	}
 
 	void Q_Learning_Console()
 	{
 		information="";
-		information+="At iteration " + frameNumber +"\n";
+		information+="=========== EPISODE " + episode + " ==========\n";
+		information+="At iteration " + frame +"\n";
 		for(int i=1;i<=N_STATES;i++)
 		{
 			information += "At state " + i + " : ";
@@ -229,8 +238,12 @@ public class Environment : MonoBehaviour
 	{
 		//int damageTaken = (int)(playerHealth.startingHealth - playerHealth.currentHealth)/10;
 		float r = 0;
-		if (isCollision) r -= collisionCost + moveCost;
+		if (isNewStateExplored) r+= explorationReward;
+		else r-= explorationReward;
+		if (playerMovement.isHit) r -= collisionCost + moveCost;
 		else r -= moveCost;
+		if (playerMovement.isTerminating) r += finalReward;
+		r -= timer;
 		if (isNewStateExplored)
 		{
 			r += explorationReward;
