@@ -43,8 +43,8 @@ public class Environment : MonoBehaviour
 	// Q-Learning Parameters
 	static float[,] q_table;
 	const float alpha = 0.8f; //learning rate
-	const float gamma = 0.5f; //delay rate
-	const float epsilon = 0.5f; //e-greedy
+	const float gamma = 0.8f; //delay rate
+	const float epsilon = 0.8f; //e-greedy
 
 	// IO Variables
 	int h = 0;
@@ -74,8 +74,9 @@ public class Environment : MonoBehaviour
 			{
 				h = (int)Input.GetAxisRaw("Horizontal");
 				v = (int)Input.GetAxisRaw("Vertical");
+				playerMovement.CheckMovementValidation(h,v,MOVEMENT_STEP_SIZE);
 			}
-			playerMovement.Move(h,v,MOVEMENT_STEP_SIZE);
+			if (!playerMovement.isHit) playerMovement.Move(h,v,MOVEMENT_STEP_SIZE);
 			if (playerMovement.isTerminating)
 			{
 				SceneManager.LoadScene("Game");
@@ -84,7 +85,7 @@ public class Environment : MonoBehaviour
 
 		if (MenuManager.Instance.GAME_MODE == 2)
 		{
-			if (timer > TIME_CAP || playerMovement.isTerminating)
+			if (timer > TIME_CAP)
 			{
 				SceneManager.LoadScene("Game");
 			}
@@ -101,6 +102,15 @@ public class Environment : MonoBehaviour
 				}
 				playerMovement.Move(h,v,MOVEMENT_STEP_SIZE);
 				playerMovement.Animating (h,v);
+				if (playerMovement.isTerminating)
+				{
+					ChooseAction();
+					playerMovement.CheckMovementValidation(h,v,MOVEMENT_STEP_SIZE);
+					CheckStateIndex();
+					Q_Learning();
+					Q_Learning_Console();
+					SceneManager.LoadScene("Game");
+				}
 			}
 			else
 			{
@@ -169,6 +179,14 @@ public class Environment : MonoBehaviour
 		//input: currentState, q_table
 		//output: action
 		float randomNumber = Random.Range(0.0f, 1.0f);
+
+		/*float e = 0f;
+		if (episode == 1) e = epsilon;
+		else if (episode == 2) e = epsilon + 0.1f;
+		else if (episode == 3) e = epsilon + 0.2f;
+		else if (episode == 4) e = epsilon + 0.3f;
+		else e = epsilon + 0.4f;*/
+
 		if (randomNumber <= epsilon)
 		{
 			actionIndex = Argmax(currentStateIndex);
@@ -204,13 +222,7 @@ public class Environment : MonoBehaviour
 		List<float> row = new List<float>();
 		List<int> rowIndex = new List<int>();
 
-		/*Debug.Log("here:" + stateIndex);
-		if (stateIndex < 1 || stateIndex > 100)
-		{
-			Debug.Log(x);
-			Debug.Log(y);
-			Time.timeScale = 0;
-		}*/
+		if (stateIndex < 1 || stateIndex > N_STATES) return Random.Range(0, actionList.Count);
 
 		for (int i=0; i<ACTION_NUMBERS; i++)
 		{
@@ -228,14 +240,6 @@ public class Environment : MonoBehaviour
 		int randomIndex = Random.Range(0, rowIndex.Count); // 0, 1, 2
 		return rowIndex[randomIndex];
 	}
-
-	/*void Learning()
-	{
-		CheckState();
-		Q_Learning();
-		Q_Learning_Console();
-		stateIndex = nextStateIndex;
-	}*/
 
 	void Q_Learning()
 	{
@@ -273,20 +277,21 @@ public class Environment : MonoBehaviour
 			r += explorationReward;
 			isNewStateExplored = false;
 		}
-		//else
-		//{
-		//	r -= explorationReward;
-		//}
+		else
+		{
+			r -= explorationReward;
+		}
 		if (!playerMovement.isHit) 
 		{
-			r += noCollisionReward;
+			r+=0;
+			//r += noCollisionReward;
 			//Debug.Log("Won't hit! Reward++!");
 		}
-		//else
-		//{
-		//	r -= noCollisionReward*100;
+		else
+		{
+			r -= noCollisionReward;
 			//Debug.Log("Will hit! No reward!");
-		//}
+		}
 		if (playerMovement.isTerminating) 
 		{
 			r += finalReward;

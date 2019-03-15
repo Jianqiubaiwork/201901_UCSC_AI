@@ -46,6 +46,11 @@ public class PlayerMovement : MonoBehaviour
 		Ray ray = new Ray(transform.position, direction);
 		RaycastHit hit;
 
+		if (direction != Vector3.zero) 
+		{
+			playerRigidbody.MoveRotation (Quaternion.LookRotation(direction));
+		}
+
 		if (Physics.Raycast(ray, out hit, movementStepSize, mazeMask) && phase==0) isHit = true;
 		else isHit = false;
 	}
@@ -53,11 +58,6 @@ public class PlayerMovement : MonoBehaviour
 	public void Move (int h, int v, int movementStepSize)
 	{
 		direction.Set (h, 0, v);
-
-		if (direction != Vector3.zero) 
-		{
-			playerRigidbody.MoveRotation (Quaternion.LookRotation(direction));
-		}
 			
 		if (h == 0 && v == 0)
 		{
