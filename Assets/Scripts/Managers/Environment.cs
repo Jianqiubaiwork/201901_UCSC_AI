@@ -269,9 +269,7 @@ public class Environment : MonoBehaviour
 
 	float RewardFunction()
 	{
-		//int damageTaken = (int)(playerHealth.startingHealth - playerHealth.currentHealth)/10;
 		float r = 0;
-		//r += -timer/10;
 		if (isNewStateExplored)
 		{
 			r += explorationReward;
@@ -283,8 +281,7 @@ public class Environment : MonoBehaviour
 		}
 		if (!playerMovement.isHit) 
 		{
-			r+=0;
-			//r += noCollisionReward;
+			r += noCollisionReward;
 			//Debug.Log("Won't hit! Reward++!");
 		}
 		else
