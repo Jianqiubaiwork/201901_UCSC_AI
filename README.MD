@@ -1,0 +1,2 @@
+- Modified an existing shooting game in Unity as a reinforcement learning platform.
+- Implemented Q-Learning as AI to enable the player automatically move and shoot in the game.
